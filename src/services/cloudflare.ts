@@ -5,7 +5,7 @@ class CloudflareService {
   private config: CloudflareConfig | null = null;
   private useMockData: boolean = false;
   private useProxy: boolean = true; // Try proxy first, fallback to direct API
-  private workerUrl: string = import.meta.env.VITE_WORKER_URL || 'https://cloudflare-analytics-dashboard.your-subdomain.workers.dev';
+  private workerUrl: string = import.meta.env.VITE_WORKER_URL || 'https://cloudflare-analytics-dashboard.bhetariah.workers.dev';
 
   setConfig(config: CloudflareConfig) {
     this.config = config;
