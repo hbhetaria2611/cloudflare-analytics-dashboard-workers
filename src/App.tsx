@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Settings, RefreshCw, Activity } from 'lucide-react';
 import { useCloudflareData } from './hooks/useCloudflareData';
 import { CloudflareConfig } from './types/cloudflare';
