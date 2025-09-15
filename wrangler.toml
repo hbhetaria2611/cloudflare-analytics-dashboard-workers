@@ -1,5 +1,4 @@
 # Cloudflare Workers configuration for Analytics Dashboard
-name = "analytics"
 main = "worker.js"
 compatibility_date = "2024-09-15"
 workers_dev = true
