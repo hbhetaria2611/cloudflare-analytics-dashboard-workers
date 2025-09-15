@@ -19,15 +19,28 @@ This is a Cloudflare Analytics Dashboard - a React/TypeScript application that p
 - `npm run lint` - Run ESLint with TypeScript rules
 - `npm run typecheck` - Run TypeScript type checking without emitting files
 
-### Backend Proxy Server (api/ Directory)
+### Backend Options
+
+#### Local Development (Express.js Proxy)
 - `cd api && npm install` - Install proxy server dependencies
 - `cd api && npm start` - Start proxy server on port 3001
 - `cd api && npm run dev` - Start proxy server with nodemon for development
 
+#### Production (Cloudflare Workers)
+- `npm run worker:dev` - Start Worker in development mode
+- `npm run worker:deploy` - Deploy Worker to Cloudflare
+- `npm run worker:tail` - View Worker logs in real-time
+
 ### Full Development Setup
-For real Cloudflare data, both servers need to be running:
-1. `cd api && npm start` (proxy server)
+For real Cloudflare data, you need either:
+
+**Option A: Local proxy server**
+1. `cd api && npm start` (Express.js proxy server)
 2. `npm run dev` (frontend)
+
+**Option B: Cloudflare Worker**
+1. `npm run worker:dev` (Worker in dev mode)
+2. `npm run dev` (frontend with VITE_WORKER_URL configured)
 
 ## Architecture
 
@@ -45,7 +58,8 @@ For real Cloudflare data, both servers need to be running:
 - **State Management**: Custom React hook (`useCloudflareData`) for centralized data state
 
 ### API Integration
-- **Primary**: Cloudflare Analytics API via proxy server (handles CORS)
+- **Production**: Cloudflare Analytics API via Cloudflare Worker (handles CORS)
+- **Development**: Cloudflare Analytics API via Express.js proxy server (handles CORS)
 - **Fallback**: Direct API calls (limited by CORS in browsers)
 - **Demo Mode**: Built-in mock data generator for demonstrations
 
@@ -73,9 +87,17 @@ For real Cloudflare data, both servers need to be running:
 
 ## Testing & Deployment
 
-The project supports three deployment modes:
-1. **Mock Data Only**: Frontend only, no proxy needed
-2. **Development**: Both frontend and proxy server for real API access
-3. **Production**: Static build can be deployed anywhere, proxy server can be deployed separately
+The project supports multiple deployment modes:
+1. **Mock Data Only**: Frontend only, no backend needed
+2. **Development**: Frontend + Express.js proxy server for real API access
+3. **Production with Workers**: Frontend + Cloudflare Worker for real API access
+4. **Production Static**: Frontend with direct API calls (CORS limitations apply)
+
+### Cloudflare Workers Deployment
+1. Configure `wrangler.toml` with your worker name
+2. Deploy: `npm run worker:deploy`
+3. Update `VITE_WORKER_URL` in environment variables
+4. Build frontend: `npm run build`
+5. Deploy static files to your preferred hosting
 
 Always run `npm run typecheck` and `npm run lint` before committing changes.

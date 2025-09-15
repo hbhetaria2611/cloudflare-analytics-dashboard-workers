@@ -30,8 +30,8 @@ The dashboard includes:
 
 2. **Open http://localhost:3000** and click "Use Mock Data"
 
-### Option 2: Use Real Cloudflare Data
-Due to CORS restrictions, you need to run a proxy server to access the Cloudflare API:
+### Option 2: Use Real Cloudflare Data (Local Development)
+For local development, you can use the Express.js proxy server:
 
 1. **Install frontend dependencies:**
    ```bash
@@ -52,6 +52,35 @@ Due to CORS restrictions, you need to run a proxy server to access the Cloudflar
 
 4. **Configure your real Cloudflare credentials:**
    - Open http://localhost:3000
+   - Click "Get Started" and enter your real Zone ID and API Token
+
+### Option 3: Deploy with Cloudflare Workers (Production)
+For production deployment using Cloudflare Workers:
+
+1. **Install dependencies including Wrangler:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure your Worker URL:**
+   ```bash
+   cp .env.example .env
+   # Edit .env and set VITE_WORKER_URL to your deployed Worker URL
+   ```
+
+3. **Deploy the Worker:**
+   ```bash
+   npm run worker:deploy
+   ```
+
+4. **Build and deploy the frontend:**
+   ```bash
+   npm run build
+   # Deploy the 'dist' folder to Cloudflare Pages, Netlify, or your preferred host
+   ```
+
+5. **Configure your real Cloudflare credentials:**
+   - Open your deployed dashboard
    - Click "Get Started" and enter your real Zone ID and API Token
 
 ## Cloudflare Setup
@@ -86,15 +115,24 @@ Edit `.env` with your values:
 VITE_CLOUDFLARE_ZONE_ID=your_zone_id_here
 VITE_CLOUDFLARE_API_TOKEN=your_api_token_here
 VITE_CLOUDFLARE_EMAIL=your_email@example.com
+
+# For Workers deployment:
+VITE_WORKER_URL=https://cloudflare-analytics-dashboard.your-subdomain.workers.dev
 ```
 
 ## Available Scripts
 
+### Frontend
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
+
+### Cloudflare Workers
+- `npm run worker:dev` - Start Worker in development mode
+- `npm run worker:deploy` - Deploy Worker to Cloudflare
+- `npm run worker:tail` - View Worker logs in real-time
 
 ## Tech Stack
 
@@ -112,6 +150,48 @@ The dashboard integrates with Cloudflare's Analytics API endpoints:
 - `/zones/{zone_id}/analytics/dashboard` - Main analytics data
 - Automatic fallback to mock data if API is unavailable
 - Built-in error handling and retry logic
+
+## Cloudflare Workers Deployment
+
+For production deployment, this project includes a Cloudflare Worker that replaces the Express.js proxy server:
+
+### Prerequisites
+1. **Cloudflare account** with Workers enabled
+2. **Wrangler CLI** installed globally: `npm install -g wrangler`
+3. **Authenticated Wrangler**: `wrangler auth login`
+
+### Deployment Steps
+
+1. **Configure the Worker:**
+   ```bash
+   # Edit wrangler.toml to set your desired worker name
+   nano wrangler.toml
+   ```
+
+2. **Deploy the Worker:**
+   ```bash
+   npm run worker:deploy
+   ```
+
+3. **Update environment variables:**
+   ```bash
+   # Copy the Worker URL from deployment output
+   # Update your .env file:
+   VITE_WORKER_URL=https://your-worker-name.your-subdomain.workers.dev
+   ```
+
+4. **Build and deploy frontend:**
+   ```bash
+   npm run build
+   # Deploy the 'dist' folder to your preferred hosting service
+   ```
+
+### Worker Features
+- **CORS handling** for cross-origin requests
+- **Cloudflare API proxying** to bypass browser CORS restrictions
+- **Error handling** with detailed error responses
+- **Health checks** for monitoring
+- **Zero cold-start** latency for API requests
 
 ## Browser Support
 

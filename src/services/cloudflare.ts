@@ -5,6 +5,7 @@ class CloudflareService {
   private config: CloudflareConfig | null = null;
   private useMockData: boolean = false;
   private useProxy: boolean = true; // Try proxy first, fallback to direct API
+  private workerUrl: string = import.meta.env.VITE_WORKER_URL || 'https://cloudflare-analytics-dashboard.your-subdomain.workers.dev';
 
   setConfig(config: CloudflareConfig) {
     this.config = config;
@@ -20,12 +21,36 @@ class CloudflareService {
       return { success: true, message: 'Using mock data', zoneName: 'Demo Zone' };
     }
 
-    // First check if proxy is available
+    // First check if Worker or local proxy is available
     try {
-      await axios.get('http://localhost:3001/health', { timeout: 2000 });
-      console.log('Proxy server is available');
+      // Try Worker first, then fallback to local proxy
+      const healthUrls = [
+        `${this.workerUrl}/health`,
+        'http://localhost:3001/health'
+      ];
+
+      let proxyAvailable = false;
+      for (const url of healthUrls) {
+        try {
+          await axios.get(url, { timeout: 2000 });
+          console.log(`Proxy available at: ${url}`);
+          // Update workerUrl if we're using the worker
+          if (url.includes('workers.dev')) {
+            this.workerUrl = url.replace('/health', '');
+          }
+          proxyAvailable = true;
+          break;
+        } catch (err) {
+          console.warn(`Proxy not available at: ${url}`);
+        }
+      }
+
+      if (!proxyAvailable) {
+        console.warn('No proxy available, will use direct API');
+        this.useProxy = false;
+      }
     } catch (error) {
-      console.warn('Proxy server not available, will use direct API');
+      console.warn('Proxy check failed, will use direct API');
       this.useProxy = false;
     }
 
@@ -33,7 +58,7 @@ class CloudflareService {
     if (this.useProxy) {
       try {
         const response = await axios.get(
-          `http://localhost:3001/api/cloudflare/validate/${this.config.zoneId}`,
+          `${this.workerUrl}/api/cloudflare/validate/${this.config.zoneId}`,
           {
             params: {
               apiToken: this.config.apiToken,
@@ -148,10 +173,10 @@ class CloudflareService {
     if (this.useProxy) {
       try {
         // Quick health check
-        await axios.get('http://localhost:3001/health', { timeout: 2000 });
+        await axios.get(`${this.workerUrl}/health`, { timeout: 2000 });
 
         const response = await axios.get(
-          `http://localhost:3001/api/cloudflare/analytics/${this.config.zoneId}`,
+          `${this.workerUrl}/api/cloudflare/analytics/${this.config.zoneId}`,
           {
             params: {
               since: this.formatDate(since),
