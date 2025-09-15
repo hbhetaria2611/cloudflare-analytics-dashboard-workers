@@ -23,19 +23,20 @@ class CloudflareService {
 
     // First check if Worker or local proxy is available
     try {
-      // Try Worker first, then fallback to local proxy
-      const healthUrls = [
-        `${this.workerUrl}/health`,
-        'http://localhost:3001/health'
-      ];
+      // Always try Worker first if it's a workers.dev URL
+      const healthUrls = this.workerUrl.includes('workers.dev')
+        ? [`${this.workerUrl}/health`, 'http://localhost:3001/health']
+        : ['http://localhost:3001/health', `${this.workerUrl}/health`];
 
       let proxyAvailable = false;
       for (const url of healthUrls) {
         try {
           await axios.get(url, { timeout: 2000 });
           console.log(`Proxy available at: ${url}`);
-          // Update workerUrl if we're using the worker
+          // Set the working URL as our proxy endpoint
           if (url.includes('workers.dev')) {
+            this.workerUrl = url.replace('/health', '');
+          } else {
             this.workerUrl = url.replace('/health', '');
           }
           proxyAvailable = true;
